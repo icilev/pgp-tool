@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Flask
+instance/
+.webassets-cache
+
+# Environment
+.env
+.env.local
+
+# Data and Keys (SENSITIVE - NEVER COMMIT!)
+/data/
+/keys/
+*.asc
+*.gpg
+*.key
+*.sig
+pubring.gpg
+secring.gpg
+trustdb.gpg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Claude Code
+.claude/
+
+# Documentation files (keep only main docs)
+INSTALLATION_COMPLETE.md
+IMPLEMENTATION_SUMMARY.txt
+
+# Temporary files
+*.tmp
+*.bak
+.DS_Store

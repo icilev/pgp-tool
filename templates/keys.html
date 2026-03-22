@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Keys - PGP Tool{% endblock %}
+
+{% block content %}
+<div class="keys-page">
+    <h2>Key Management</h2>
+
+    <div class="key-actions">
+        <button onclick="showModal('generateModal')" class="btn btn-primary">Generate New Key Pair</button>
+        <button onclick="showModal('importModal')" class="btn btn-secondary">Import Key</button>
+    </div>
+
+    <div class="keys-section">
+        <h3>Your Private Keys</h3>
+        {% if private_keys %}
+            <div class="keys-list">
+                {% for key in private_keys %}
+                <div class="key-card">
+                    <div class="key-header">
+                        <h4>{{ key.name }}</h4>
+                        <span class="key-id">{{ key.keyid }}</span>
+                    </div>
+                    <div class="key-details">
+                        <p><strong>Email:</strong> {{ key.email }}</p>
+                        <p><strong>Fingerprint:</strong> <code class="fingerprint">{{ key.fingerprint }}</code></p>
+                        <p><strong>Key Size:</strong> {{ key.length }} bits {{ key.algo }}</p>
+                        <p><strong>Created:</strong> {{ key.created }}</p>
+                        <p><strong>Expires:</strong> {{ key.expires }}</p>
+                    </div>
+                    <div class="key-actions-inline">
+                        <button onclick="showPublicKey('{{ key.fingerprint }}')" class="btn btn-sm btn-primary">Copy Public Key</button>
+                        <button onclick="exportKey('{{ key.fingerprint }}', 'public')" class="btn btn-sm">Export Public</button>
+                        <button onclick="exportPrivateKey('{{ key.fingerprint }}')" class="btn btn-sm">Export Private</button>
+                        <button onclick="deleteKey('{{ key.fingerprint }}', 'private')" class="btn btn-sm btn-danger">Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-data">No private keys found. Generate a new key pair to get started.</p>
+        {% endif %}
+    </div>
+
+    <div class="keys-section">
+        <h3>Public Keys</h3>
+        {% if public_keys %}
+            <div class="keys-list">
+                {% for key in public_keys %}
+                <div class="key-card">
+                    <div class="key-header">
+                        <h4>{{ key.name }}</h4>
+                        <span class="key-id">{{ key.keyid }}</span>
+                    </div>
+                    <div class="key-details">
+                        <p><strong>Email:</strong> {{ key.email }}</p>
+                        <p><strong>Fingerprint:</strong> <code class="fingerprint">{{ key.fingerprint }}</code></p>
+                        <p><strong>Key Size:</strong> {{ key.length }} bits {{ key.algo }}</p>
+                        <p><strong>Trust:</strong> {{ key.trust }}</p>
+                    </div>
+                    <div class="key-actions-inline">
+                        <button onclick="showPublicKey('{{ key.fingerprint }}')" class="btn btn-sm btn-primary">Copy Public Key</button>
+                        <button onclick="exportKey('{{ key.fingerprint }}', 'public')" class="btn btn-sm">Export</button>
+                        <button onclick="deleteKey('{{ key.fingerprint }}', 'public')" class="btn btn-sm btn-danger">Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-data">No public keys found. Import keys from your contacts.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Generate Key Modal -->
+<div id="generateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="hideModal('generateModal')">&times;</span>
+        <h3>Generate New Key Pair</h3>
+        <form method="POST" action="{{ url_for('generate_key') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="comment">Comment (optional)</label>
+                <input type="text" id="comment" name="comment">
+            </div>
+            <div class="form-group">
+                <label for="passphrase">Passphrase *</label>
+                <input type="password" id="passphrase" name="passphrase" required>
+                <small>Choose a strong passphrase to protect your private key</small>
+            </div>
+            <div class="form-group">
+                <label for="key_length">Key Length</label>
+                <select id="key_length" name="key_length">
+                    <option value="2048">2048 bits</option>
+                    <option value="4096" selected>4096 bits (recommended)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Key Pair</button>
+        </form>
+    </div>
+</div>
+
+<!-- Import Key Modal -->
+<div id="importModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="hideModal('importModal')">&times;</span>
+        <h3>Import PGP Key</h3>
+        <form method="POST" action="{{ url_for('import_key') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="key_file">Import from File</label>
+                <input type="file" id="key_file" name="key_file" accept=".asc,.gpg,.pgp,.key,.txt">
+            </div>
+            <div class="form-group">
+                <label for="key_data">Or Paste Key Data</label>
+                <textarea id="key_data" name="key_data" rows="10" placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Import Key</button>
+        </form>
+    </div>
+</div>
+
+<!-- Export Private Key Modal -->
+<div id="exportPrivateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="hideModal('exportPrivateModal')">&times;</span>
+        <h3>Export Private Key</h3>
+        <p class="warning">⚠️ Keep your private key secure! Never share it.</p>
+        <form method="POST" action="{{ url_for('export_private_key') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" id="export_fingerprint" name="fingerprint">
+            <div class="form-group">
+                <label for="export_passphrase">Passphrase *</label>
+                <input type="password" id="export_passphrase" name="passphrase" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Export Private Key</button>
+        </form>
+    </div>
+</div>
+
+<!-- Show Public Key Modal -->
+<div id="showPublicKeyModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="hideModal('showPublicKeyModal')">&times;</span>
+        <h3>Public Key</h3>
+        <p>Copy this key to share with others so they can encrypt messages for you.</p>
+        <div class="result-box">
+            <textarea id="publicKeyDisplay" readonly rows="15" style="font-family: monospace; font-size: 0.875rem;"></textarea>
+        </div>
+        <div class="result-actions">
+            <button onclick="copyToClipboard('publicKeyDisplay')" class="btn btn-primary">Copy to Clipboard</button>
+            <button onclick="hideModal('showPublicKeyModal')" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function exportKey(fingerprint, keyType) {
+    window.location.href = `/keys/export/${fingerprint}?type=${keyType}`;
+}
+
+function exportPrivateKey(fingerprint) {
+    document.getElementById('export_fingerprint').value = fingerprint;
+    showModal('exportPrivateModal');
+}
+
+function deleteKey(fingerprint, keyType) {
+    if (confirm(`Are you sure you want to delete this ${keyType} key?`)) {
+        fetch('/keys/delete/' + fingerprint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ key_type: keyType })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function showPublicKey(fingerprint) {
+    // Fetch the public key
+    fetch(`/keys/export/${fingerprint}?type=public`)
+        .then(response => response.text())
+        .then(keyData => {
+            document.getElementById('publicKeyDisplay').value = keyData;
+            showModal('showPublicKeyModal');
+        })
+        .catch(error => {
+            alert('Error loading public key: ' + error);
+        });
+}
+</script>
+{% endblock %}

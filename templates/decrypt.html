@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Decrypt - PGP Tool{% endblock %}
+
+{% block content %}
+<div class="decrypt-page">
+    <h2>Decrypt Message</h2>
+    <p class="subtitle">Decrypt encrypted messages or files</p>
+
+    <form method="POST" action="{{ url_for('decrypt') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-section">
+            <h3>Input</h3>
+            <div class="form-group">
+                <label>
+                    <input type="radio" name="input_type" value="text" checked onchange="toggleInputType()"> Text
+                    <input type="radio" name="input_type" value="file" onchange="toggleInputType()"> File
+                </label>
+            </div>
+
+            <div id="text_input" class="form-group">
+                <label for="encrypted_message">Encrypted Message</label>
+                <textarea id="encrypted_message" name="encrypted_message" rows="10" placeholder="-----BEGIN PGP MESSAGE-----"></textarea>
+            </div>
+
+            <div id="file_input" class="form-group" style="display: none;">
+                <label for="file">Encrypted File</label>
+                <input type="file" id="file" name="file" accept=".asc,.gpg,.pgp">
+                <small>Maximum file size: 10MB</small>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Authentication</h3>
+            <div class="form-group">
+                <label for="passphrase">Passphrase *</label>
+                <input type="password" id="passphrase" name="passphrase" required>
+                <small>Enter the passphrase for your private key</small>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Decrypt</button>
+    </form>
+
+    {% if decrypted_data %}
+    <div class="result-section">
+        <h3>Decrypted Result</h3>
+        <div class="result-box">
+            <textarea id="decrypted_output" readonly rows="15">{{ decrypted_data }}</textarea>
+        </div>
+        <div class="result-actions">
+            <button onclick="copyToClipboard('decrypted_output')" class="btn btn-secondary">Copy to Clipboard</button>
+            <button onclick="downloadText('{{ filename or 'decrypted.txt' }}', document.getElementById('decrypted_output').value)" class="btn btn-secondary">Download</button>
+        </div>
+
+        {% if signature_info %}
+        <div class="signature-info">
+            <h4>✓ Signature Information</h4>
+            <p><strong>Signed by:</strong> {{ signature_info.username }}</p>
+            <p><strong>Key ID:</strong> {{ signature_info.key_id }}</p>
+            <p><strong>Fingerprint:</strong> <code>{{ signature_info.fingerprint }}</code></p>
+            <p><strong>Trust Level:</strong> {{ signature_info.trust_text }}</p>
+            {% if signature_info.timestamp %}
+            <p><strong>Signed on:</strong> {{ signature_info.timestamp }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleInputType() {
+    const textInput = document.getElementById('text_input');
+    const fileInput = document.getElementById('file_input');
+    const inputType = document.querySelector('input[name="input_type"]:checked').value;
+
+    if (inputType === 'text') {
+        textInput.style.display = 'block';
+        fileInput.style.display = 'none';
+        document.getElementById('file').required = false;
+        document.getElementById('encrypted_message').required = true;
+    } else {
+        textInput.style.display = 'none';
+        fileInput.style.display = 'block';
+        document.getElementById('file').required = true;
+        document.getElementById('encrypted_message').required = false;
+    }
+}
+</script>
+{% endblock %}

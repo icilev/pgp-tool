@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Encrypt - PGP Tool{% endblock %}
+
+{% block content %}
+<div class="encrypt-page">
+    <h2>Encrypt Message</h2>
+    <p class="subtitle">Encrypt text or files for one or more recipients</p>
+
+    <form method="POST" action="{{ url_for('encrypt') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-section">
+            <h3>Input</h3>
+            <div class="form-group">
+                <label>
+                    <input type="radio" name="input_type" value="text" checked onchange="toggleInputType()"> Text
+                    <input type="radio" name="input_type" value="file" onchange="toggleInputType()"> File
+                </label>
+            </div>
+
+            <div id="text_input" class="form-group">
+                <label for="message">Message to Encrypt</label>
+                <textarea id="message" name="message" rows="10" placeholder="Enter your message here..."></textarea>
+            </div>
+
+            <div id="file_input" class="form-group" style="display: none;">
+                <label for="file">File to Encrypt</label>
+                <input type="file" id="file" name="file">
+                <small>Maximum file size: 10MB</small>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Recipients</h3>
+            {% if public_keys %}
+                <div class="form-group">
+                    <label>Select Recipients (hold Ctrl/Cmd for multiple)</label>
+                    <select name="recipients" multiple size="5" required>
+                        {% for key in public_keys %}
+                        <option value="{{ key.fingerprint }}">{{ key.name }} &lt;{{ key.email }}&gt; ({{ key.keyid }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% else %}
+                <p class="warning">⚠️ No public keys available. Please import recipient keys first.</p>
+            {% endif %}
+        </div>
+
+        <div class="form-section">
+            <h3>Options</h3>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" name="sign" id="sign_checkbox" onchange="toggleSignature()">
+                    Sign with my key
+                </label>
+            </div>
+
+            <div id="signature_options" style="display: none;">
+                {% if private_keys %}
+                    <div class="form-group">
+                        <label for="signing_key">Signing Key</label>
+                        <select id="signing_key" name="signing_key">
+                            {% for key in private_keys %}
+                            <option value="{{ key.fingerprint }}">{{ key.name }} &lt;{{ key.email }}&gt;</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="signing_passphrase">Passphrase for Signing Key</label>
+                        <input type="password" id="signing_passphrase" name="signing_passphrase">
+                    </div>
+                {% else %}
+                    <p class="warning">No private keys available for signing.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Encrypt</button>
+    </form>
+
+    {% if encrypted_data %}
+    <div class="result-section">
+        <h3>Encrypted Result</h3>
+        <div class="result-box">
+            <textarea id="encrypted_output" readonly rows="15">{{ encrypted_data }}</textarea>
+        </div>
+        <div class="result-actions">
+            <button onclick="copyToClipboard('encrypted_output')" class="btn btn-secondary">Copy to Clipboard</button>
+            <button onclick="downloadText('{{ filename or 'encrypted.asc' }}', document.getElementById('encrypted_output').value)" class="btn btn-secondary">Download</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleInputType() {
+    const textInput = document.getElementById('text_input');
+    const fileInput = document.getElementById('file_input');
+    const inputType = document.querySelector('input[name="input_type"]:checked').value;
+
+    if (inputType === 'text') {
+        textInput.style.display = 'block';
+        fileInput.style.display = 'none';
+        document.getElementById('file').required = false;
+        document.getElementById('message').required = true;
+    } else {
+        textInput.style.display = 'none';
+        fileInput.style.display = 'block';
+        document.getElementById('file').required = true;
+        document.getElementById('message').required = false;
+    }
+}
+
+function toggleSignature() {
+    const signOptions = document.getElementById('signature_options');
+    const signCheckbox = document.getElementById('sign_checkbox');
+
+    if (signCheckbox.checked) {
+        signOptions.style.display = 'block';
+        document.getElementById('signing_passphrase').required = true;
+    } else {
+        signOptions.style.display = 'none';
+        document.getElementById('signing_passphrase').required = false;
+    }
+}
+</script>
+{% endblock %}

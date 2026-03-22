@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - PGP Tool{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>Welcome to PGP Tool</h2>
+    <p class="subtitle">A local web application for PGP cryptographic operations</p>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ public_keys_count }}</h3>
+            <p>Public Keys</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ private_keys_count }}</h3>
+            <p>Private Keys</p>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="action-grid">
+            <a href="{{ url_for('keys') }}" class="action-card">
+                <div class="action-icon">🔑</div>
+                <h4>Manage Keys</h4>
+                <p>Generate, import, or export PGP keys</p>
+            </a>
+            <a href="{{ url_for('encrypt') }}" class="action-card">
+                <div class="action-icon">🔒</div>
+                <h4>Encrypt Message</h4>
+                <p>Encrypt text or files for recipients</p>
+            </a>
+            <a href="{{ url_for('decrypt') }}" class="action-card">
+                <div class="action-icon">🔓</div>
+                <h4>Decrypt Message</h4>
+                <p>Decrypt received encrypted messages</p>
+            </a>
+            <a href="{{ url_for('sign') }}" class="action-card">
+                <div class="action-icon">✍️</div>
+                <h4>Sign Message</h4>
+                <p>Digitally sign messages or files</p>
+            </a>
+            <a href="{{ url_for('verify') }}" class="action-card">
+                <div class="action-icon">✓</div>
+                <h4>Verify Signature</h4>
+                <p>Verify message signatures</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="security-notice">
+        <h3>⚠️ Security Reminders</h3>
+        <ul>
+            <li>Never share your private key or passphrase</li>
+            <li>Always verify key fingerprints before encrypting</li>
+            <li>Create a revocation certificate for your keys</li>
+            <li>Backup your keys in a secure location</li>
+            <li>This application runs locally - data never leaves your machine</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

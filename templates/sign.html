@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Sign - PGP Tool{% endblock %}
+
+{% block content %}
+<div class="sign-page">
+    <h2>Sign Message</h2>
+    <p class="subtitle">Digitally sign messages or files</p>
+
+    <form method="POST" action="{{ url_for('sign') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-section">
+            <h3>Input</h3>
+            <div class="form-group">
+                <label>
+                    <input type="radio" name="input_type" value="text" checked onchange="toggleInputType()"> Text
+                    <input type="radio" name="input_type" value="file" onchange="toggleInputType()"> File
+                </label>
+            </div>
+
+            <div id="text_input" class="form-group">
+                <label for="message">Message to Sign</label>
+                <textarea id="message" name="message" rows="10" placeholder="Enter your message here..."></textarea>
+            </div>
+
+            <div id="file_input" class="form-group" style="display: none;">
+                <label for="file">File to Sign</label>
+                <input type="file" id="file" name="file">
+                <small>Maximum file size: 10MB</small>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Signature Options</h3>
+            {% if private_keys %}
+                <div class="form-group">
+                    <label for="signing_key">Signing Key *</label>
+                    <select id="signing_key" name="signing_key" required>
+                        {% for key in private_keys %}
+                        <option value="{{ key.fingerprint }}">{{ key.name }} &lt;{{ key.email }}&gt;</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="passphrase">Passphrase *</label>
+                    <input type="password" id="passphrase" name="passphrase" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signature_type">Signature Type</label>
+                    <select id="signature_type" name="signature_type">
+                        <option value="normal">Normal (binary)</option>
+                        <option value="clearsign" selected>Clear-sign (readable text with signature)</option>
+                        <option value="detach">Detached (separate signature file)</option>
+                    </select>
+                    <small>Clear-sign keeps message readable, detached creates separate .sig file</small>
+                </div>
+            {% else %}
+                <p class="warning">⚠️ No private keys available. Please generate a key pair first.</p>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary" {% if not private_keys %}disabled{% endif %}>Sign</button>
+    </form>
+
+    {% if signed_data %}
+    <div class="result-section">
+        <h3>Signed Result</h3>
+        <div class="result-box">
+            <textarea id="signed_output" readonly rows="15">{{ signed_data }}</textarea>
+        </div>
+        <div class="result-actions">
+            <button onclick="copyToClipboard('signed_output')" class="btn btn-secondary">Copy to Clipboard</button>
+            <button onclick="downloadText('{{ filename or 'signed.asc' }}', document.getElementById('signed_output').value)" class="btn btn-secondary">Download</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleInputType() {
+    const textInput = document.getElementById('text_input');
+    const fileInput = document.getElementById('file_input');
+    const inputType = document.querySelector('input[name="input_type"]:checked').value;
+
+    if (inputType === 'text') {
+        textInput.style.display = 'block';
+        fileInput.style.display = 'none';
+        document.getElementById('file').required = false;
+        document.getElementById('message').required = true;
+    } else {
+        textInput.style.display = 'none';
+        fileInput.style.display = 'block';
+        document.getElementById('file').required = true;
+        document.getElementById('message').required = false;
+    }
+}
+</script>
+{% endblock %}

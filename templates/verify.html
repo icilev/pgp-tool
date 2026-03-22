@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Verify - PGP Tool{% endblock %}
+
+{% block content %}
+<div class="verify-page">
+    <h2>Verify Signature</h2>
+    <p class="subtitle">Verify the authenticity of signed messages</p>
+
+    <form method="POST" action="{{ url_for('verify') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-section">
+            <h3>Input</h3>
+            <div class="form-group">
+                <label>
+                    <input type="radio" name="input_type" value="text" checked onchange="toggleInputType()"> Text
+                    <input type="radio" name="input_type" value="file" onchange="toggleInputType()"> File
+                </label>
+            </div>
+
+            <div id="text_input" class="form-group">
+                <label for="signed_message">Signed Message</label>
+                <textarea id="signed_message" name="signed_message" rows="10" placeholder="-----BEGIN PGP SIGNED MESSAGE-----"></textarea>
+            </div>
+
+            <div id="file_input" class="form-group" style="display: none;">
+                <label for="file">Signed File</label>
+                <input type="file" id="file" name="file" accept=".asc,.gpg,.pgp,.sig,.txt">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Detached Signature (Optional)</h3>
+            <div class="form-group">
+                <label for="signature_file">Signature File (.sig)</label>
+                <input type="file" id="signature_file" name="signature_file" accept=".sig,.asc">
+                <small>Only needed if you have a separate signature file</small>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Verify Signature</button>
+    </form>
+
+    {% if verification_result %}
+    <div class="result-section">
+        {% if verification_result.valid %}
+        <div class="verification-success">
+            <h3>✓ Signature is VALID</h3>
+            <div class="verification-details">
+                <p><strong>Signed by:</strong> {{ verification_result.username }}</p>
+                <p><strong>Key ID:</strong> {{ verification_result.key_id }}</p>
+                <p><strong>Fingerprint:</strong> <code>{{ verification_result.fingerprint }}</code></p>
+                <p><strong>Trust Level:</strong> {{ verification_result.trust_text }}</p>
+                {% if verification_result.timestamp %}
+                <p><strong>Signature Date:</strong> {{ verification_result.timestamp }}</p>
+                {% endif %}
+                <p><strong>Status:</strong> {{ verification_result.status }}</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="verification-failure">
+            <h3>✗ Signature is INVALID</h3>
+            <p><strong>Status:</strong> {{ verification_result.status }}</p>
+            <p class="warning">⚠️ This message may have been tampered with or the signature is incorrect.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleInputType() {
+    const textInput = document.getElementById('text_input');
+    const fileInput = document.getElementById('file_input');
+    const inputType = document.querySelector('input[name="input_type"]:checked').value;
+
+    if (inputType === 'text') {
+        textInput.style.display = 'block';
+        fileInput.style.display = 'none';
+        document.getElementById('file').required = false;
+        document.getElementById('signed_message').required = true;
+    } else {
+        textInput.style.display = 'none';
+        fileInput.style.display = 'block';
+        document.getElementById('file').required = true;
+        document.getElementById('signed_message').required = false;
+    }
+}
+</script>
+{% endblock %}

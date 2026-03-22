@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PGP Tool{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>🔐 PGP Tool</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}>Dashboard</a></li>
+                <li><a href="{{ url_for('keys') }}" {% if request.endpoint == 'keys' %}class="active"{% endif %}>Keys</a></li>
+                <li><a href="{{ url_for('encrypt') }}" {% if request.endpoint == 'encrypt' %}class="active"{% endif %}>Encrypt</a></li>
+                <li><a href="{{ url_for('decrypt') }}" {% if request.endpoint == 'decrypt' %}class="active"{% endif %}>Decrypt</a></li>
+                <li><a href="{{ url_for('sign') }}" {% if request.endpoint == 'sign' %}class="active"{% endif %}>Sign</a></li>
+                <li><a href="{{ url_for('verify') }}" {% if request.endpoint == 'verify' %}class="active"{% endif %}>Verify</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>PGP Tool - Local cryptographic operations</p>
+            <p class="warning">⚠️ This is a local tool. Keep your private keys and passphrases secure!</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
