@@ -37,7 +37,7 @@ A local web application for PGP cryptographic operations: encryption, decryption
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/pgp-tool.git
+git clone https://github.com/icilev/pgp-tool.git
 cd pgp-tool
 ```
 
