@@ -1,0 +1,13 @@
+{
+  "name": "pgp-tool",
+  "version": "1.0.0",
+  "description": "Secure PGP Operations - Encrypt, Decrypt, Sign, Verify",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/cli.mjs dev",
+    "dev": "node scripts/cli.mjs dev",
+    "prod": "node scripts/cli.mjs start"
+  },
+  "keywords": ["pgp", "encryption", "security", "gnupg"],
+  "license": "MIT"
+}

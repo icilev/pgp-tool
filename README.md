@@ -1,191 +1,102 @@
-# PGP Tool - Local Web Application
+# PGP Tool
 
-A local web application for PGP cryptographic operations: encryption, decryption, signing, and signature verification.
+A local web application for PGP cryptographic operations — encrypt, decrypt, sign, and verify, entirely on your machine.
 
-## Features
+## Quick Start
 
-- **Key Management**
-  - Generate RSA key pairs (2048-4096 bits)
-  - Import/Export public and private keys
-  - Delete keys
-
-- **Encryption**
-  - Encrypt text or files
-  - Support for multiple recipients
-  - Optional signing during encryption
-
-- **Decryption**
-  - Decrypt encrypted messages or files
-  - Verify embedded signatures
-
-- **Signing**
-  - Clear-sign messages (readable text)
-  - Detached signatures
-  - Normal binary signatures
-
-- **Verification**
-  - Verify inline signatures
-  - Verify detached signatures
-  - Display trust levels and signer information
-
-## Requirements
-
-- Python 3.8 or higher
-- GnuPG (comes pre-installed on macOS)
-
-## Installation
-
-1. **Clone the repository**
 ```bash
 git clone https://github.com/icilev/pgp-tool.git
 cd pgp-tool
+npm start
 ```
 
-2. **Create a virtual environment**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+That's it. The CLI handles everything automatically:
 
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+- Creates the Python virtual environment if missing
+- Installs all dependencies
+- Checks for updates (GitHub + pip) and applies them
+- Starts the server and opens your browser
 
-4. **Configure environment variables**
-```bash
-cp .env.example .env
-```
+> **Requirement:** [GnuPG](https://gnupg.org/) must be installed.
+> ```bash
+> brew install gnupg   # macOS
+> ```
 
-Edit `.env` and set your `SECRET_KEY`:
-```bash
-# Generate a secure secret key
-python3 -c "import secrets; print(secrets.token_hex(32))"
-```
+---
 
-Copy the output and add it to `.env`:
-```
-SECRET_KEY=your-generated-secret-key-here
-```
+## Features
 
-## Usage
+- **Key Management** — Generate RSA key pairs (2048–4096 bits), import/export, delete
+- **Encryption** — Encrypt text or files for one or multiple recipients, with optional signing
+- **Decryption** — Decrypt messages or files, verify embedded signatures
+- **Signing** — Clear-sign, detached, or binary signatures
+- **Verification** — Verify signatures and display trust level + signer info
 
-1. **Start the application**
-```bash
-python app.py
-```
+---
 
-2. **Open your browser**
-Navigate to: `http://localhost:5000`
+## CLI Commands
 
-3. **First-time setup**
-   - Go to the "Keys" page
-   - Generate your first key pair
-   - Import public keys from your contacts
+| Command | Description |
+|---|---|
+| `npm start` | Start the app (auto-setup + auto-update) |
+| `npm run dev` | Same as start, in development mode |
+| `npm run prod` | Start in production mode (no auto-update) |
 
-4. **Basic workflow**
-   - **Encrypt**: Select recipients → Enter message → Copy encrypted result
-   - **Decrypt**: Paste encrypted message → Enter passphrase → View decrypted text
-   - **Sign**: Enter message → Select signing key → Copy signed result
-   - **Verify**: Paste signed message → View verification result
+---
 
-## Security Considerations
+## First Use
 
-⚠️ **Important Security Notes:**
+1. Open `http://localhost:5000`
+2. Go to **Keys** → generate your first key pair
+3. Import public keys from your contacts
 
-- **Private Keys**: Never share your private key or passphrase
-- **Passphrases**: Not stored anywhere - entered only when needed
-- **Local Only**: All operations happen locally on your machine
-- **Backups**: Backup your keys in a secure location
-- **Fingerprints**: Always verify key fingerprints before encrypting
-- **Revocation**: Create a revocation certificate for your keys
+**Basic workflow**
 
-### What This Tool Does NOT Do
+- **Encrypt** — Select recipients → enter message → copy result
+- **Decrypt** — Paste encrypted message → enter passphrase → read
+- **Sign** — Enter message → select key → copy signed result
+- **Verify** — Paste signed message → see result
 
-- **Memory Security**: Python cannot securely wipe memory
-- **Network Operations**: No key servers or online features
-- **Advanced Key Management**: No key signing, trust paths, or web of trust
+---
 
-## File Structure
+## Security Notes
+
+- All operations run **locally** — nothing leaves your machine
+- Private keys and passphrases are **never stored**
+- Always verify key fingerprints before encrypting
+- Back up your keys in a secure location
+
+---
+
+## Project Structure
 
 ```
 pgp-tool/
-├── app.py                  # Main Flask application
-├── config.py               # Configuration
-├── requirements.txt        # Python dependencies
-├── .env                    # Environment variables (not in git)
+├── app.py                 # Flask application
+├── config.py              # Configuration
+├── requirements.txt       # Python dependencies
+├── scripts/cli.mjs        # Dev CLI (npm start)
 ├── modules/
 │   ├── key_manager.py     # Key operations
-│   ├── pgp_operations.py  # Encrypt/decrypt/sign/verify
+│   ├── pgp_operations.py  # Encrypt / decrypt / sign / verify
 │   ├── storage.py         # JSON storage
-│   └── utils.py           # Utility functions
+│   └── utils.py           # Utilities
 ├── templates/             # HTML templates
 ├── static/                # CSS and JavaScript
-├── data/                  # JSON metadata (not in git)
-└── keys/                  # GnuPG keyring (not in git)
+├── data/                  # Metadata (git-ignored)
+└── keys/                  # GnuPG keyring (git-ignored)
 ```
 
-## Troubleshooting
+---
 
-### GnuPG not found
-```bash
-# Check if GnuPG is installed
-gpg --version
+## Tech Stack
 
-# macOS: Install with Homebrew if needed
-brew install gnupg
-```
+- **Backend** — Flask 3, python-gnupg
+- **Frontend** — HTML, CSS, Vanilla JS
+- **Security** — Flask-WTF (CSRF protection)
 
-### Permission errors
-```bash
-# Fix permissions for keys directory
-chmod 700 keys
-chmod 700 data
-```
-
-### Import errors
-```bash
-# Ensure virtual environment is activated
-source venv/bin/activate
-
-# Reinstall dependencies
-pip install -r requirements.txt
-```
-
-## Development
-
-### Tech Stack
-- **Backend**: Flask 3.0
-- **PGP**: python-gnupg (wrapper for GnuPG)
-- **Frontend**: HTML, CSS, Vanilla JavaScript
-- **Security**: Flask-WTF (CSRF protection)
-
-### Adding Features
-
-The modular structure makes it easy to extend:
-
-- **New operations**: Add to `modules/pgp_operations.py`
-- **New routes**: Add to `app.py`
-- **New templates**: Add to `templates/`
-- **New styles**: Add to `static/css/style.css`
+---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Disclaimer
-
-This software is provided "as is", without warranty of any kind. Use at your own risk.
-
-## Support
-
-For issues or questions:
-1. Check the GnuPG documentation: https://gnupg.org/documentation/
-2. Check python-gnupg docs: https://gnupg.readthedocs.io/
-3. Review Flask documentation: https://flask.palletsprojects.com/
-
-## Acknowledgments
-
-- GnuPG for the cryptographic backend
-- python-gnupg for the Python wrapper
-- Flask for the web framework
+MIT — see [LICENSE](LICENSE).
