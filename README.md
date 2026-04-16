@@ -8,42 +8,42 @@ A local web application for PGP cryptographic operations — encrypt, decrypt, s
 
 > You have nothing installed? Start here. This takes about 10 minutes.
 
-### Step 1 — Install Python
+### Step 1 — Open a terminal
 
-1. Go to **https://www.python.org/downloads/**
-2. Click the big yellow **"Download Python 3.x.x"** button
-3. Run the installer
-4. **IMPORTANT:** At the bottom of the first screen, check the box **"Add Python to PATH"**
-   (this is easy to miss — do not skip it)
-5. Click **"Install Now"**
+Press **Windows key + R**, type `powershell`, press Enter.
 
-### Step 2 — Install GnuPG (the encryption engine)
+### Step 2 — Install Python and GnuPG
 
-1. Go to **https://www.gpg4win.org/**
-2. Click **"Download Gpg4win"** (it's free)
-3. Run the installer, leave all options as default, click Next until done
+Copy and paste these two lines one by one, pressing Enter after each:
 
-### Step 3 — Download the project
+```powershell
+winget install -e --id Python.Python.3.13
+winget install -e --id GnuPG.Gpg4win
+```
 
-1. Go to **https://github.com/icilev/pgp-tool**
-2. Click the green **"Code"** button (top right)
-3. Click **"Download ZIP"**
-4. Once downloaded, **right-click** the ZIP file → **"Extract All..."**
-5. Choose a folder you'll remember (e.g. `C:\Users\YourName\Desktop\pgp-tool`)
-6. Click **"Extract"**
+> `winget` is built into Windows 10/11 — no need to install anything first.
+> Follow the on-screen prompts and accept the licenses.
 
-### Step 4 — Start the app
+**Close and reopen PowerShell** after this step so the new tools are recognized.
 
-Open the extracted `pgp-tool` folder in File Explorer and **double-click `start.bat`**.
+### Step 3 — Download and launch the project
 
-The script automatically:
-- Creates the Python environment
-- Installs all dependencies
-- Starts the server and opens your browser
+Copy and paste this entire block at once, then press Enter:
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/icilev/pgp-tool/archive/refs/heads/main.zip" -OutFile "$env:TEMP\pgp-tool.zip"
+Expand-Archive "$env:TEMP\pgp-tool.zip" "$env:USERPROFILE\Desktop\"
+cd "$env:USERPROFILE\Desktop\pgp-tool-main"
+.\start.bat
+```
+
+This downloads the project to your Desktop, extracts it, and starts the app.
 
 Your browser will open to **http://localhost:5000** — the app is running.
 
-> To stop the app: close the black window, or press `Ctrl+C` in it.
+> To stop the app: close the terminal window, or press `Ctrl+C` in it.
+>
+> Next time: just double-click `start.bat` in the `pgp-tool-main` folder on your Desktop.
 
 ---
 
@@ -140,11 +140,8 @@ pgp-tool/
 
 ## Troubleshooting
 
-**"python is not recognized"**
-→ Reinstall Python and check "Add Python to PATH" during installation. Then restart cmd.
-
-**"gpg is not recognized"**
-→ Reinstall Gpg4win and restart cmd.
+**"python is not recognized"** or **"gpg is not recognized"**
+→ Close and reopen PowerShell after the `winget` installs. If still failing, restart your computer.
 
 **The browser doesn't open automatically**
 → Open it manually and go to http://localhost:5000
